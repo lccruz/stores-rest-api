@@ -3,3 +3,4 @@ Flask-JWT
 Flask-RESTful
 Flask-SQLAlchemy
 gunicorn
+psycopg2
