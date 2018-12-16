@@ -1,12 +1,11 @@
 import os
 from flask import Flask
 from flask_restful import Api
-from flask_jwt import JWT
+from flask_jwt_extended import JWTManager
 
-from security import authenticate
-from security import identity
-from resources.user import UserRegister
 from resources.user import User
+from resources.user import UserRegister
+from resources.user import UserLogin
 from resources.item import Item
 from resources.item import ItemList
 from resources.store import Store
@@ -22,17 +21,19 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
 )
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['PROPAGATE_EXCEPTIONS'] = True
-app.secret_key = "key_app_flask"
+app.config['JWT_SECRET_KEY'] = 'KEY_APP_JWT'
 api = Api(app)
 
-jwt = JWT(app, authenticate, identity)
+# /auth
+jwt = JWTManager(app)
 
 api.add_resource(Item, '/item/<string:name>')
 api.add_resource(ItemList, '/items')
 api.add_resource(Store, '/store/<string:name>')
 api.add_resource(StoreList, '/stores')
-api.add_resource(UserRegister, '/register')
 api.add_resource(User, '/user/<int:user_id>')
+api.add_resource(UserRegister, '/register')
+api.add_resource(UserLogin, '/login')
 
 
 if __name__ == "__main__":
