@@ -33,15 +33,18 @@ api = Api(app)
 # /auth
 jwt = JWTManager(app)
 
+
 @jwt.user_claims_loader
 def add_claims_to_jwt(identity):
     if identity == 1:
         return {'is_admin': True}
     return {'is_admin': False}
 
+
 @jwt.token_in_blacklist_loader
 def check_if_token_in_blacklist(decrypted_token):
     return decrypted_token['jti'] in BLACKLIST
+
 
 @jwt.expired_token_loader
 def expired_token_callback():
@@ -50,12 +53,14 @@ def expired_token_callback():
         'error': "token_expired"
     }), 401
 
+
 @jwt.invalid_token_loader
 def invalid_token_callback():
     return jsonify({
         'description': "Signature verification failed",
         'error': "invalid_expired"
     }), 401
+
 
 @jwt.unauthorized_loader
 def missing_token_callback(error):
@@ -64,6 +69,7 @@ def missing_token_callback(error):
         'error': "unauthorized_required"
     }), 401
 
+
 @jwt.needs_fresh_token_loader
 def token_not_fresh_callback():
     return jsonify({
@@ -71,12 +77,14 @@ def token_not_fresh_callback():
         'error': "fresh_token_required"
     }), 401
 
+
 @jwt.revoked_token_loader
 def revoked_token_callback():
     return jsonify({
         'description': "The token has benn revoked",
         'error': "token_revoked"
     }), 401
+
 
 api.add_resource(Item, '/item/<string:name>')
 api.add_resource(ItemList, '/items')

@@ -11,17 +11,19 @@ from models.item import ItemModel
 class Item(Resource):
 
     parser = reqparse.RequestParser()
-    parser.add_argument('price',
+    parser.add_argument(
+        'price',
         type=float,
         required=True,
         help="This field cannot be left blank!"
     )
-    parser.add_argument('store_id',
+    parser.add_argument(
+        'store_id',
         type=int,
         required=True,
         help="This field needs a store id."
     )
- 
+
     @jwt_required
     def get(self, name):
         item = ItemModel.find_by_name(name)
@@ -29,10 +31,12 @@ class Item(Resource):
             return item.json()
         return {"message": "Item not found"}, 404
 
-    @fresh_jwt_required
+    @jwt_required
     def post(self, name):
         if ItemModel.find_by_name(name):
-            return {'message': "An item with name {} alredy exists.".format(name)}, 400
+            return {
+                'message': "An item with name {} alredy exists.".format(name)
+            }, 400
         data = Item.parser.parse_args()
         item = ItemModel(name, **data)
         try:
@@ -42,7 +46,8 @@ class Item(Resource):
 
         return item.json(), 201
 
-    @jwt_required
+    # https://flask-jwt-extended.readthedocs.io/en/latest/api.html
+    @fresh_jwt_required
     def delete(self, name):
         claims = get_jwt_claims()
         if not claims['is_admin']:
@@ -51,10 +56,10 @@ class Item(Resource):
         item = ItemModel.find_by_name(name)
         if item:
             item.delete_from_db()
- 
-        return {"message":"item {} delted".format('name')}
 
-    @fresh_jwt_required
+        return {"message": "item {} delted".format('name')}
+
+    @jwt_required
     def put(self, name):
         data = Item.parser.parse_args()
         item = ItemModel.find_by_name(name)

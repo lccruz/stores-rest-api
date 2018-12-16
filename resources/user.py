@@ -1,4 +1,3 @@
-import sqlite3
 from flask_restful import Resource
 from flask_restful import reqparse
 from flask_jwt_extended import create_access_token
@@ -7,18 +6,22 @@ from flask_jwt_extended import jwt_refresh_token_required
 from flask_jwt_extended import get_jwt_identity
 from flask_jwt_extended import jwt_required
 from flask_jwt_extended import get_raw_jwt
+from flask_jwt_extended import get_jwt_claims
+from flask_jwt_extended import fresh_jwt_required
 from models.user import UserModel
 from blacklist import BLACKLIST
 
 
 class UserBase(Resource):
     parser = reqparse.RequestParser()
-    parser.add_argument('username',
+    parser.add_argument(
+        'username',
         type=str,
         required=True,
         help="This field cannot be left blank!"
     )
-    parser.add_argument('password',
+    parser.add_argument(
+        'password',
         type=str,
         required=True,
         help="This field cannot be left blank!"
@@ -48,7 +51,11 @@ class User(Resource):
         return user.json()
 
     @classmethod
+    @fresh_jwt_required
     def delete(cls, user_id):
+        claims = get_jwt_claims()
+        if not claims['is_admin']:
+            return {'message': 'Admin privilege required'}, 401
         user = UserModel.find_by_id(user_id)
         if not user:
             return {'message': 'user not found'}, 404
@@ -85,8 +92,8 @@ class UserLogout(UserBase):
 
 
 class TokenRefresh(Resource):
-   @jwt_refresh_token_required
-   def post(self):
+    @jwt_refresh_token_required
+    def post(self):
         current_user = get_jwt_identity()
         new_token = create_access_token(identity=current_user, fresh=False)
         return {'access_token': new_token}, 200
