@@ -3,7 +3,12 @@ from flask_restful import Resource
 from flask_restful import reqparse
 from flask_jwt_extended import create_access_token
 from flask_jwt_extended import create_refresh_token
+from flask_jwt_extended import jwt_refresh_token_required
+from flask_jwt_extended import get_jwt_identity
+from flask_jwt_extended import jwt_required
+from flask_jwt_extended import get_raw_jwt
 from models.user import UserModel
+from blacklist import BLACKLIST
 
 
 class UserBase(Resource):
@@ -66,3 +71,22 @@ class UserLogin(UserBase):
                 'refresh_token': refresh_token
             }, 200
         return {"message": "Invalid credential"}, 401
+
+
+class UserLogout(UserBase):
+    @jwt_required
+    def get(self):
+        # jti is JWT ID
+        jti = get_raw_jwt()['jti']
+        BLACKLIST.add(jti)
+        return {
+            'message': 'Successfully logged out'
+        }, 200
+
+
+class TokenRefresh(Resource):
+   @jwt_refresh_token_required
+   def post(self):
+        current_user = get_jwt_identity()
+        new_token = create_access_token(identity=current_user, fresh=False)
+        return {'access_token': new_token}, 200

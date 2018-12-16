@@ -4,6 +4,7 @@ from flask_jwt_extended import jwt_required
 from flask_jwt_extended import get_jwt_claims
 from flask_jwt_extended import jwt_optional
 from flask_jwt_extended import get_jwt_identity
+from flask_jwt_extended import fresh_jwt_required
 from models.item import ItemModel
 
 
@@ -27,9 +28,9 @@ class Item(Resource):
         if item:
             return item.json()
         return {"message": "Item not found"}, 404
- 
-    def post(self, name):
 
+    @fresh_jwt_required
+    def post(self, name):
         if ItemModel.find_by_name(name):
             return {'message': "An item with name {} alredy exists.".format(name)}, 400
         data = Item.parser.parse_args()
@@ -53,6 +54,7 @@ class Item(Resource):
  
         return {"message":"item {} delted".format('name')}
 
+    @fresh_jwt_required
     def put(self, name):
         data = Item.parser.parse_args()
         item = ItemModel.find_by_name(name)
